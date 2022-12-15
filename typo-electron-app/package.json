@@ -1,0 +1,64 @@
+{
+  "name": "typo-electron-app",
+  "version": "1.0.0",
+  "description": "typo_text_word2vec",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron-forge start",
+    "package": "electron-forge package",
+    "make": "electron-forge make",
+    "deploy": "electron-builder --windows nsis:ia32"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/joohyoungkim19940805/word2vec_javascript.git"
+  },
+  "author": "mozu123",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/joohyoungkim19940805/word2vec_javascript/issues"
+  },
+  "homepage": "https://github.com/joohyoungkim19940805/word2vec_javascript#readme",
+  "devDependencies": {
+    "@electron-forge/cli": "^6.0.4",
+    "@electron-forge/maker-deb": "^6.0.4",
+    "@electron-forge/maker-rpm": "^6.0.4",
+    "@electron-forge/maker-squirrel": "^6.0.4",
+    "@electron-forge/maker-zip": "^6.0.4",
+    "electron": "^22.0.0",
+    "electron-builder": "^23.6.0"
+  },
+  "keywords": [
+    "typo",
+    "electron",
+    "app"
+  ],
+  "build": {
+    "productName": "typo-electron-app",
+    "appId": "com.typo.electron.app",
+    "asar": true,
+    "protocols": {
+      "name": "typo-electron-app",
+      "schemes": [
+        "typoelectronapp"
+      ]
+    },
+    "win": {
+      "target": [
+        "zip",
+        "nsis"
+      ],
+      "icon": "./resources/installer/Icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "directories": {
+      "buildResources": "./resources/installer/",
+      "output": "./dist/",
+      "app": "."
+    }
+  }
+}
