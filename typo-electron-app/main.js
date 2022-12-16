@@ -1,51 +1,26 @@
+/**
+ * global에 새로운 네임스페이스를 추가하는 나쁜 패턴은 남용하지 말 것
+ * global에 새로운 네임스페이스를 추가하는 경우는 Custom Error을 새롭게 정의할 때 또는 전역적으로 반드시 필요한 경우에만 사용 할 것
+ * global에 새로운 네임스페이스를 추가하는 것은 한 파일에 전부 모아놓고 사용 할 것
+ */
+global.__project_path = require.main.paths[0].split('node_modules')[0];
+
 // 일렉트론 모듈 호출
-const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
+const { app, BrowserWindow /*, ipcMain, dialog, shell*/ } = require('electron');
 // path 모듈 호출
 const path = require('path');
 
-//console.log('BrowserWindow', BrowserWindow);
-// 창을 만드는 함수를 정의한다.
-const createWindow = () => {
-	const win = new BrowserWindow({
-		width : 800,
-		height : 600,
-		webPreferences : {
-			preload : path.join(__dirname, 'preload.js')
-		},
-		autoHideMenuBar : true,
-		title : 'Hello Rad'
-	})
-
-	ipcMain.on('set-title1', (event, title)=>{
-		console.log('ipcMain<<',title)
-		let webContent = event.sender;
-		let win = BrowserWindow.fromWebContents(webContent);
-		win.setTitle(title);
-		
-	})
-	/**
-	 * dialog:IPC 채널 이름 의 접두사는 코드에 영향을 미치지 않습니다. 
-	 * 코드 가독성에 도움이 되는 네임스페이스 역할만 합니다.
-	 */
-	ipcMain.handle('dialog:openFile', async () => {
-		const { canceled, filePaths } = await dialog.showOpenDialog({properties:['openDirectory','openFile']});
-		console.log(filePaths);
-		if( canceled ){
-			return
-		} else {
-			return filePaths[0]
-		}
-	})
-
-	//console.log('win', win);
-	win.loadFile('index.html');
-	// Open the DevTools.
-	win.webContents.openDevTools()
-}
+const fs = require('fs');
 
 // app이 실행 될 때 프로미스를 반환할 때 창을 만든다.
 app.whenReady().then(()=>{
-	createWindow()
+	const MainWindow = require(path.join(__project_path, 'browser/window/main/MainWindow.js'))
+	//const mainWindow = new MainWindow();
+	//mainWindow.webContent.openDevTools();
+	new MainWindow();
+	
+	const MainIpcController = require(path.join(__project_path, 'browser/ipcController/MainIpcController.js'))
+	new MainIpcController();
 
 	//앱이 활성화 되었을 때의 이벤트를 정의한다.
 	//mac os 의 경우 창이 열려있지 않아도 백그라운드에서 계속 실행 상태이다.
@@ -110,7 +85,7 @@ console.log('logs ::: ', app.getPath('logs'))
 //console.log('recent pictures ::: ', shell.showItemInFolder('C:/dev/sts-4.6.1.RELEASE/test'))
 //console.log('recent pictures ::: ', shell.openPath('C:/dev/sts-4.6.1.RELEASE/SpringToolSuite4.exe'))
 
-const fs = require('fs');
+
 
 /*
 // Callback
