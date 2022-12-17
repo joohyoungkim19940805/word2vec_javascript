@@ -96,12 +96,25 @@ fs.readdir(app.getPath('downloads'), (err, files) => {
 fs.readdirSync(app.getPath('downloads'))
 */
 
-const roots = fs.readdirSync('/')
+//const roots = fs.readdirSync('/')
 /*
 roots.then((error, result)=>{
 	console.log(result);
 })
 */
-
-console.log(roots);
+let list = []
+var exec = require('child_process').exec;
+exec('wmic logicaldisk get caption', function(err, stdout, stderr) {
+	console.log('err', err);
+	console.log('stdout', stdout);
+	console.log('stderr', stderr);
+	console.log('list 2 :::',list);
+});
+console.log('list 1 :::',list);
+fs.readdir('C:/testaaa', (err, files) => {
+	console.log('err:::',err);
+    console.log('files:::',files);
+	//console.log('files[0]:::',files[0]);
+	//console.log(fs.statSync('C:/'+files[0]).isDirectory())
+})
 
