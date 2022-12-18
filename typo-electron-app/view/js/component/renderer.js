@@ -6,5 +6,6 @@ document.getElementById('btn').onclick = () => {
 
 document.getElementById('openFileBtn').onclick = async () => {
 	const filePath = await window.myAPI.openFile();
+	console.log(filePath);
 	document.getElementById('showFilePath').textContent = filePath;
 }

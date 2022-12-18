@@ -14,13 +14,13 @@ const fs = require('fs');
 
 // app이 실행 될 때 프로미스를 반환할 때 창을 만든다.
 app.whenReady().then(()=>{
-	const MainWindow = require(path.join(__project_path, 'browser/window/main/MainWindow.js'))
+	const mainWindow = require(path.join(__project_path, 'browser/window/main/MainWindow.js'))
+	console.log(mainWindow.test);
 	//const mainWindow = new MainWindow();
 	//mainWindow.webContent.openDevTools();
-	new MainWindow();
+	//new MainWindow();
 	
-	const MainIpcController = require(path.join(__project_path, 'browser/ipcController/MainIpcController.js'))
-	new MainIpcController();
+	const mainIpcController = require(path.join(__project_path, 'browser/ipcController/MainIpcController.js'))
 
 	//앱이 활성화 되었을 때의 이벤트를 정의한다.
 	//mac os 의 경우 창이 열려있지 않아도 백그라운드에서 계속 실행 상태이다.
@@ -102,19 +102,25 @@ roots.then((error, result)=>{
 	console.log(result);
 })
 */
+
 let list = []
-var exec = require('child_process').exec;
-exec('wmic logicaldisk get caption', function(err, stdout, stderr) {
-	console.log('err', err);
-	console.log('stdout', stdout);
-	console.log('stderr', stderr);
-	console.log('list 2 :::',list);
-});
+
 console.log('list 1 :::',list);
-fs.readdir('C:/testaaa', (err, files) => {
+/*
+fs.readdir('C:/', {encoding : 'utf8'}, (err, files) => {
 	console.log('err:::',err);
     console.log('files:::',files);
+	console.log('files:::',files[files.length - 1]);
+	console.log('files is 새 폴더 == ', files[files.length - 1] === '새 폴더')
+	fs.readdir('C:/'+files[files.length - 1], (err,files)=>{
+		console.log(files)
+		console.log(fs.Stats)
+	})
 	//console.log('files[0]:::',files[0]);
 	//console.log(fs.statSync('C:/'+files[0]).isDirectory())
 })
+*/
 
+const allDirectoryPathScanning = require(path.join(__project_path, 'browser/service/AllDirectoryPathScanning.js'))
+
+allDirectoryPathScanning.scaninngStart().then(()=>console.log('done22222'));

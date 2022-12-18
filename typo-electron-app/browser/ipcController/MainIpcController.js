@@ -1,6 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 const { app, BrowserWindow, ipcMain, shell } = require('electron');
+const allDirectoryPathScanning = require(path.join(__project_path, 'browser/service/AllDirectoryPathScanning.js'))
 
 class MainIpcController {
 	constructor() {
@@ -24,11 +25,16 @@ class MainIpcController {
 			//if( canceled ){
 			//	return
 			//} else {
-				shell.openPath('C:/dev/sts-4.6.1.RELEASE/SpringToolSuite4.exe')
-				return fs.readdirSync(app.getPath('downloads'))
+				//shell.openPath('C:/dev/sts-4.6.1.RELEASE/SpringToolSuite4.exe')
+				//return fs.readdirSync(app.getPath('downloads'))
 			//}
+			console.log(allDirectoryPathScanning.userDirtoryList)
+			console.log(allDirectoryPathScanning.userDirtoryMapper['G:/FOUND.000'])
+			
+			//console.log(allDirectoryPathScanning.userDirtoryMapper)
+			return allDirectoryPathScanning.userDirtoryMapper['G:/FOUND.000'];
 		})
 	}
 }
-
-module.exports = MainIpcController
+const mainIpcController = new MainIpcController();
+module.exports = mainIpcController

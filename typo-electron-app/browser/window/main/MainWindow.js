@@ -33,7 +33,8 @@ class MainWindow extends BrowserWindow{
 			console.log(e)
 			super.webContents.openDevTools();
 		});
+		this.test = 'aaaaaaaaaaaaaaaaaaaaaa'
 	}
 }
-
-module.exports = MainWindow
+const mainWindow = new MainWindow();
+module.exports = mainWindow
