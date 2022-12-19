@@ -28,9 +28,10 @@ class MainIpcController {
 				//shell.openPath('C:/dev/sts-4.6.1.RELEASE/SpringToolSuite4.exe')
 				//return fs.readdirSync(app.getPath('downloads'))
 			//}
-			console.log(allDirectoryPathScanning.userDirtoryList)
+			console.log(allDirectoryPathScanning.userDirtoryList.length)
 			console.log(allDirectoryPathScanning.userDirtoryMapper['G:/FOUND.000'])
-			
+			console.log(allDirectoryPathScanning.userDirtoryList)
+			//console.log(allDirectoryPathScanning.userDirtoryMapper)
 			//console.log(allDirectoryPathScanning.userDirtoryMapper)
 			return allDirectoryPathScanning.userDirtoryMapper['G:/FOUND.000'];
 		})

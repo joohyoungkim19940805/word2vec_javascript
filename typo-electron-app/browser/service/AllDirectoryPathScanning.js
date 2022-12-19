@@ -41,14 +41,19 @@ class AllDirectoryPathScanning{
 
     }
     
-    scaninngStart(){
-        return new Promise( (resolve, rejects) => {
-            this.allDriveScaninng().then(driveNameList => {
-                Promise.all(
-                    driveNameList.map( async (drive) => await this.allDirtoryScaninng(drive)).flatMap(e=>e)
-                ).then((e)=>console.log('end???!!!')).catch(err=>console.log(err))
-            })
-        })
+    async scaninngStart(){
+			
+		return await Promise.all(
+			['C://project'].flatMap( (e) => this.allDirtoryScaninng(e))
+		)
+		
+		/*
+		this.allDriveScaninng().then(driveNameList => {
+			Promise.all(
+				driveNameList.flatMap( async (drive) => await this.allDirtoryScaninng(drive + this.#PATH_SEPARATOR))
+			).then((e)=>console.log('end???!!!')).catch(err=>console.log(err))
+		})
+		*/
     }
 
     allDriveScaninng(){
@@ -62,7 +67,9 @@ class AllDirectoryPathScanning{
                     .split('\n')
                     .filter(e=> e !== '')
                     .map( (e, i) => {
-                        this.getFileStat(e).then(stat=>this.#userDirtoryMapper[e]=stat);
+                        this.getFileStat(e).then(stat=>{
+							this.#userDirtoryMapper[e]=stat
+						});
                         this.#userDirtoryList.push(e);
                         return e;
                     })
@@ -71,7 +78,7 @@ class AllDirectoryPathScanning{
         });
     }
 
-    allDirtoryScaninng(dirPath, isOrigin = true){
+	allDirtoryScaninng(dirPath, isOrigin = true){
         return new Promise( (resolve, rejects) => {
             fs.readdir(dirPath, (err,files)=>{
                 //console.log(err);
