@@ -22,18 +22,22 @@ class MainWindow extends BrowserWindow{
 	constructor() {
 		//console.log('__project_path in MainWindow :::', __project_path);
 		super({
-			width : 1200,
-			height : 600,
+			width : 800,
+			height : 300,
 			webPreferences : {
 				preload : path.join(__project_path, 'browser/preload/main/mainPreload.js')
 			},
-			autoHideMenuBar : true
-		})
-		super.loadFile(path.join(__project_path, 'view/html/mainView.html')).then(e=>{
+			center : true,
+			autoHideMenuBar : true,
+			titleBarStyle : 'hidden',
+			movable : false,
+			resizable : false
+		});
+		
+		super.loadFile(path.join(__project_path, 'view/html/opening.html')).then(e=>{
 			console.log(e)
 			super.webContents.openDevTools();
 		});
-		this.test = 'aaaaaaaaaaaaaaaaaaaaaa'
 	}
 }
 const mainWindow = new MainWindow();

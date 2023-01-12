@@ -1,6 +1,6 @@
 /**
- * global에 새로운 네임스페이스를 추가하는 나쁜 패턴은 남용하지 말 것
- * global에 새로운 네임스페이스를 추가하는 경우는 Custom Error을 새롭게 정의할 때 또는 전역적으로 반드시 필요한 경우에만 사용 할 것
+ * global에 무분별하게 네임스페이스를 추가하는 나쁜 패턴은 남용하지 말 것
+ * global에 네임스페이스를 추가하는 경우는 Custom Error을 새롭게 정의할 때 또는 전역적으로 반드시 필요한 경우에만 사용 할 것
  * global에 새로운 네임스페이스를 추가하는 것은 한 파일에 전부 모아놓고 사용 할 것
  */
 global.__project_path = require.main.paths[0].split('node_modules')[0];
@@ -12,10 +12,9 @@ const path = require('path');
 
 const fs = require('fs');
 
-// app이 실행 될 때 프로미스를 반환할 때 창을 만든다.
+// app이 실행 될 때, 프로미스를 반환받고 창을 만든다.
 app.whenReady().then(()=>{
 	const mainWindow = require(path.join(__project_path, 'browser/window/main/MainWindow.js'))
-	console.log(mainWindow.test);
 	//const mainWindow = new MainWindow();
 	//mainWindow.webContent.openDevTools();
 	//new MainWindow();
@@ -103,9 +102,9 @@ roots.then((error, result)=>{
 })
 */
 
-let list = []
+//let list = []
 
-console.log('list 1 :::',list);
+//console.log('list 1 :::',list);
 /*
 fs.readdir('C:/', {encoding : 'utf8'}, (err, files) => {
 	console.log('err:::',err);
@@ -121,6 +120,6 @@ fs.readdir('C:/', {encoding : 'utf8'}, (err, files) => {
 })
 */
 
-const allDirectoryPathScanning = require(path.join(__project_path, 'browser/service/AllDirectoryPathScanning.js'))
+//const allDirectoryPathScanning = require(path.join(__project_path, 'browser/service/AllDirectoryPathScanning.js'))
 
-allDirectoryPathScanning.scaninngStart().then(()=>console.log('done22222'));
+//allDirectoryPathScanning.scaninngStart().then(()=>console.log('done22222'));

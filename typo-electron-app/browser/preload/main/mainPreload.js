@@ -9,7 +9,7 @@ contextBridge.exposeInMainWorld('myAPI', {
 		 * 보안상의 이유로ipcRenderer.send 전체 API를 직접 노출하지 않습니다. 
 		 * Electron API에 대한 렌더러의 액세스를 가능한 한 많이 제한해야 합니다.
 		 */
-		ipcRenderer.send('set-title1', title)
+		ipcRenderer.send('test', title)
 	},
 	/**
 	 * dialog:IPC 채널 이름 의 접두사는 코드에 영향을 미치지 않습니다. 
@@ -18,7 +18,8 @@ contextBridge.exposeInMainWorld('myAPI', {
 	 * Electron API에 대한 렌더러의 액세스를 가능한 한 많이 제한해야 합니다.
 	 * @returns 
 	 */
-	openFile : () => ipcRenderer.invoke('dialog:openFile')
+	openFile : () => ipcRenderer.invoke('dialog:openFile'),
+	scanningUserDirectory : ()=> ipcRenderer.invoke('scanningUserDirectory')
 })
 
 /** 
@@ -26,11 +27,5 @@ contextBridge.exposeInMainWorld('myAPI', {
  * node js의 process versions 개체에 엑세스하여 html 문서에 버전 번호를 추가하게 한다.
  */
 window.addEventListener('DOMContentLoaded', () => {
-	const replaceText = (selector, text) => {
-		const element = document.getElementById(selector);
-		if(element){
-			element.innerText = text;
-		}
-	}
-	['chrome', 'node', 'electron'].forEach(e=>replaceText(`${e}-version`, process.versions[e]))
+	
 })
