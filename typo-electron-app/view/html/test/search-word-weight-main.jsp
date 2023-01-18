@@ -341,13 +341,7 @@
 										<td data-row_id="fieldName"> <!-- 필드 이름 선택 td -->
 											<input list="fields_data_list" class="ui-input" name="fieldName" placeholder="필드 이름 선택" onblur="pageHandler.checkFieldName(this)">
 											<datalist id="fields_data_list">
-												<c:forEach var="item" items="${fieldInfo}" varStatus="status">
-													<option value="${item.indexFieldName}" data-index_field_type="${item.indexFieldType}" 
-														<c:forEach var="entry" items="${item.indexFieldOptions}">
-															data-${entry.key}="${entry.value}"
-														</c:forEach>
-													>${item.indexFieldKorName}</option>
-												</c:forEach>
+
 											</datalist>
 										</td>
 										<td data-row_id="logicOptionCode"> <!-- 논리 조건 선택 td -->

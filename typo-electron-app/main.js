@@ -15,12 +15,20 @@ const fs = require('fs');
 // app이 실행 될 때, 프로미스를 반환받고 창을 만든다.
 app.whenReady().then(()=>{
 	const mainWindow = require(path.join(__project_path, 'browser/window/main/MainWindow.js'))
-	//const mainWindow = new MainWindow();
-	//mainWindow.webContent.openDevTools();
-	//new MainWindow();
 	
-	const mainIpcController = require(path.join(__project_path, 'browser/ipcController/MainIpcController.js'))
+	const mainTray = require(path.join(__project_path, 'browser/window/tray/MainTray.js'))
 
+	const openingIpcController = require(path.join(__project_path, 'browser/ipcController/OpeningIpcController.js'))
+/*
+    let icons = new BrowserWindow({
+        show: false, webPreferences: {offscreen: true}});
+    icons.loadURL("https://trends.google.com/trends/hottrends/visualize");
+    icons.webContents.on("paint", (event, dirty, image) => {
+        if (mainTray) {
+			mainTray.setImage(image.resize({width: 16, height: 16}));
+		}
+    });
+*/
 	//앱이 활성화 되었을 때의 이벤트를 정의한다.
 	//mac os 의 경우 창이 열려있지 않아도 백그라운드에서 계속 실행 상태이다.
 	app.on('activate', ()=>{

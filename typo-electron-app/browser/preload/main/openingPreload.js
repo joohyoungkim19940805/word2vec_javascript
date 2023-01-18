@@ -19,7 +19,8 @@ contextBridge.exposeInMainWorld('myAPI', {
 	 * @returns 
 	 */
 	openFile : () => ipcRenderer.invoke('dialog:openFile'),
-	scanningUserDirectory : ()=> ipcRenderer.invoke('scanningUserDirectory')
+	scanningUserDirectory : () => ipcRenderer.invoke('scanningUserDirectory'),
+	getScanningProgress : () => ipcRenderer.invoke('getScanningProgress')
 })
 
 /** 

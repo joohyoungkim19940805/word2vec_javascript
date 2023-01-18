@@ -25,7 +25,7 @@ class MainWindow extends BrowserWindow{
 			width : 800,
 			height : 300,
 			webPreferences : {
-				preload : path.join(__project_path, 'browser/preload/main/mainPreload.js')
+				preload : path.join(__project_path, 'browser/preload/main/openingPreload.js')
 			},
 			center : true,
 			autoHideMenuBar : true,
@@ -35,10 +35,16 @@ class MainWindow extends BrowserWindow{
 		});
 		
 		super.loadFile(path.join(__project_path, 'view/html/opening.html')).then(e=>{
-			console.log(e)
+			//console.log(e)
 			super.webContents.openDevTools();
 		});
+
+		super.on('close', event => {
+			event.sender.hide();
+			event.preventDefault(); // prevent quit process
+		})
 	}
 }
+
 const mainWindow = new MainWindow();
 module.exports = mainWindow

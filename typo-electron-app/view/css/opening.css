@@ -26,9 +26,13 @@ body{
 }
 
 #container .loding_bar_wrapper .status_wrapper{
-	font-size: 3vh;
+    font-size: 3.4vh;
     align-self: center;
     display: flex;
+    padding-left: 1%;
+    color: #EAEAEA;
+    font-weight: 500;
+    font-family: emoji;
 }
 
 #container .loding_bar_wrapper .loding_bar{
@@ -43,6 +47,27 @@ body{
 	animation-iteration-count: infinite;
 	animation-timing-function: linear;
 	animation-duration: 2s;
+}
+
+#container .loding_bar_wrapper .status_wrapper .status_text::after{
+	content: "";
+    animation-name: status_text_ellipsis;
+    animation-direction: normal;
+    animation-iteration-count: infinite;
+    animation-timing-function: cubic-bezier(0.4, 0, 1, 1);
+    animation-duration: 4s;
+}
+
+@keyframes status_text_ellipsis {
+	20%{
+		content: " 。";
+	}
+	50%{
+		content: " 。。";
+	}
+	80%{
+		content: " 。。。";
+	}
 }
 
 @keyframes progress_color {
