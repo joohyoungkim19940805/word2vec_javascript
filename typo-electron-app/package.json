@@ -5,11 +5,12 @@
 	"main": "main.js",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
-		"start": "electron .",
+		"start": "webpack && electron .",
 		"//start": "electron-forge start",
 		"package": "electron-forge package",
 		"make": "electron-forge make",
-		"deploy": "electron-builder --windows nsis:ia32"
+		"deploy": "electron-builder --windows nsis:ia32",
+		"build": "webpack"
 	},
 	"repository": {
 		"type": "git",
@@ -28,7 +29,13 @@
 		"@electron-forge/maker-squirrel": "^6.0.4",
 		"@electron-forge/maker-zip": "^6.0.4",
 		"electron": "^22.0.0",
-		"electron-builder": "^22.10.3"
+		"electron-builder": "^23.6.0",
+		"webpack": "^5.75.0",
+		"webpack-cli": "^5.0.1"
+	},
+	"dependencies": {
+		"@tensorflow-models/mobilenet": "^2.0.4",
+		"@tensorflow/tfjs": "^4.2.0"
 	},
 	"keywords": [
 		"typo",
@@ -42,7 +49,7 @@
 		"protocols": {
 			"name": "typo-electron-app",
 			"schemes": [
-			"typoelectronapp"
+				"typoelectronapp"
 			]
 		},
 		"win": {

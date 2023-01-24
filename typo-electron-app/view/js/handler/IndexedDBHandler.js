@@ -3,98 +3,152 @@
  * @author mou123
  * @constructor
  */
-class IndexedDBHandler{
+export default class IndexedDBHandler{
 	/**
 	 * indexed db에서 사용할 db 식별 명칭
 	 */
-	#dbName = 'bo-temp-save-db'
+	#dbName;
 
 	/**
-	 * indexed db의 'bo-temp-save-db'에서 사용 할 컬럼 정보
+	 * indexed db의 store에서 사용 할 컬럼 정보
 	 */
-	#columnInfo = {
-		boTempId:['boTempId','boTempId',{unique : true}],
-		boTempName:['boTempName','boTempName'],
-		boTempInsertTime:['boTempInsertTime','boTempInsertTime'],
-		boTempData:['boTempData','boTempData']
-	};
+	#columnInfo;
+
+	/**
+	 * store 식별 명칭
+	 */
+	#storeName;
+
+	#db;
+
+	isOpen = false;
+
+	#container;
 
 	/**
 	 * 생성자
 	 * @author mozu123
 	 */
-	constructor(){
-		this.isOpen = false;
-		this.boTempDB;
-		const dbOpenRequest = indexedDB.open(this.DB_NAME);
-		/**
-		 * db open시 기존 버전 정보를 비교하였을 때, 업그레이드가 필요한 경우 동작하는 이벤트를 정의한다.
-		 * @author mozu123
-		 * @param {Event} e 
-		 * @returns 
-		 * @see this.upgradeneeded()
-		 */
-		dbOpenRequest.onupgradeneeded = (e) => this.upgradeneeded(e,{});
-		
-		/**
-		 * db open시 동작하는 이벤트를 정의한다.
-		 * @param {Event} e 
-		 */
-		dbOpenRequest.onsuccess = (e) => {
-			this.isOpen = true;
-			this.boTempDB = e.target.result;
+	constructor({
+		dbName = undefined,
+		columnInfo = undefined,
+		storeName = undefined
+	}){
+		if( ! dbName || ! columnInfo || ! storeName ){
+			throw new Error('dbName is undefined');
+		}else if( ! columnInfo ){
+			throw new Error('columnInfo is undefined');
+		}else if( ! storeName ){
+			throw new Error('storeName is ubdefined')
+		}else{
+			this.#dbName = dbName;
+			this.#columnInfo = columnInfo;
+			this.#storeName = storeName;	
+			this.#container = JSON.stringify(
+				Object.entries(columnInfo).reduce((obj, [k,v], idx) => {
+					obj[k] = undefined;
+					return obj;
+				}, {})
+			)
+		}
+	}
+
+	open(){
+		return new Promise( (resolve, reject) => {
+
+			const dbOpenRequest = indexedDB.open(this.DB_NAME);
+			/**
+			 * db open시 기존 버전 정보를 비교하였을 때, 업그레이드가 필요한 경우 동작하는 이벤트를 정의한다.
+			 * @author mozu123
+			 * @param {Event} e 
+			 * @returns 
+			 * @see this.upgradeneeded()
+			 */
+			dbOpenRequest.onupgradeneeded = (e) => this.upgradeneeded(e,{});
 			
-			let storeName = Object.entries(this.boTempDB.objectStoreNames).find(([idx, storeName]) => storeName == this.DB_STORE_NAME)
-			let isNewAddStore = ! storeName;
-			let isNeedChangeIndex = false;
+			/**
+			 * db open시 동작하는 이벤트를 정의한다.
+			 * @param {Event} e 
+			 */
+			dbOpenRequest.onsuccess = (e) => {
+				this.isOpen = true;
+				this.#db = e.target.result;
+				let storeName = Object.entries(this.#db.objectStoreNames).find(([idx, storeName]) => storeName == this.DB_STORE_NAME)
+				let isNewAddStore = ! storeName;
+				let isNeedChangeIndex = false;
 
-			if( ! isNewAddStore){
-				let store = this.boTempDB.transaction(this.DB_STORE_NAME, 'readwrite').objectStore(this.DB_STORE_NAME);
-				let indexNamesMapper = Object.entries(store.indexNames).reduce((t,[idx,indexName])=>{
-					t[indexName]=idx
-					return t;
-				},{});
-				isNeedChangeIndex = 
-					Object.entries(indexNamesMapper).findIndex(([name,idx]) => ! this.#columnInfo[name] ) != -1 ||
-					Object.entries(this.#columnInfo).findIndex(([k,v])=> ! indexNamesMapper[k] ) != -1
-			}
+				if( ! isNewAddStore){
+					let store = this.#db.transaction(this.DB_STORE_NAME, 'readwrite').objectStore(this.DB_STORE_NAME);
+					let indexNamesMapper = Object.entries(store.indexNames).reduce((t,[idx,indexName])=>{
+						t[indexName]=idx
+						return t;
+					},{});
+					isNeedChangeIndex = 
+						Object.entries(indexNamesMapper).findIndex(([name,idx]) => ! this.#columnInfo[name] ) != -1 ||
+						Object.entries(this.#columnInfo).findIndex(([k,v])=> ! indexNamesMapper[k] ) != -1
+				}
 
-			if( isNewAddStore || isNeedChangeIndex ){
-				let newVersion = Number(this.boTempDB.version) + 1;
-				// 기존 버전과 비교하였을 때 변경사항이 있어서 업그레이드(기존 정보 마이그레이션)가 필요 한 경우
-				this.boTempDB.close();
-				const secondOpenRequest = indexedDB.open(this.DB_NAME, newVersion);
-				/**
-				 * DB에 변동사항이 생겨 업그레이드가 필요하다면, 기존 db를 닫은 후 다시 열어서 신규 정보를 업그레이드 하는 이벤트가 동작하도록 한다.
-				 * @author mozu123
-				 * @param {Event} event 
-				 * @returns 
-				 */
-				secondOpenRequest.onupgradeneeded = (event) => this.upgradeneeded(event, {isNewAddStore:isNewAddStore});
-				/**
-				 * 위에 입력된 로직에 따라 업그레이드가 완료된 경우 이 이벤트가 동작한다.
-				 * @author mozu123
-				 * @param {Event} event 
-				 */
-				secondOpenRequest.onsuccess = (event) => {
-					this.isOpen = true;
-					this.boTempDB = event.target.result;
+				if( isNewAddStore || isNeedChangeIndex ){
+					let newVersion = Number(this.#db.version) + 1;
+					// 기존 버전과 비교하였을 때 변경사항이 있어서 업그레이드(기존 정보 마이그레이션)가 필요 한 경우
+					this.close().then( closeResult => {
+						const secondOpenRequest = indexedDB.open(this.DB_NAME, newVersion);
+					
+						/**
+						 * DB에 변동사항이 생겨 업그레이드가 필요하다면, 기존 db를 닫은 후 다시 열어서 신규 정보를 업그레이드 하는 이벤트가 동작하도록 한다.
+						 * @author mozu123
+						 * @param {Event} event 
+						 * @returns 
+						 */
+						secondOpenRequest.onupgradeneeded = (event) => this.upgradeneeded(event, {isNewAddStore:isNewAddStore});
+						
+						/**
+						 * 위에 입력된 로직에 따라 업그레이드가 완료된 경우 이 이벤트가 동작한다.
+						 * @author mozu123
+						 * @param {Event} event 
+						 */
+						secondOpenRequest.onsuccess = (event) => {
+							this.isOpen = true;
+							this.#db = event.target.result;
+							resolve(this.isOpen);
+						}
+					});
+					
+				}else{
+					resolve(this.isOpen);
 				}
 			}
-		}
-		/**
-		 * db open시 어떤 이유로 인해 오류가 발생할 때 동작하는 이벤트
-		 * @param {Event} e 
-		 */
-		dbOpenRequest.onerror = (e) => {
-			console.log(e);
-			this.isOpen = false;
-			if(e.target.error.name == 'VersionError'){
-				alert('VersionError: DB 버전을 수동으로 입력해선 안됩니다.');
-			}else{
-				alert('임시저장 내역을 불러오지 못했습니다.');
+			/**
+			 * db open시 어떤 이유로 인해 오류가 발생할 때 동작하는 이벤트
+			 * @param {Event} e 
+			 */
+			dbOpenRequest.onerror = (e) => {
+				console.log(e);
+				this.isOpen = false;
+				if(e.target.error.name == 'VersionError'){
+					//error code
+					reject(new Error('VersionError: DB 버전을 수동으로 입력해선 안됩니다.'));
+				}else{
+					//error code
+					reject(new Error(`unknownError ${e}`))
+				}
 			}
-		}
+		})
+	}
+
+	close(){
+		return new Promise( resolve => {
+			if( ! this.#db || ! this.isOpen){
+				resolve(false)
+			}
+			this.#db.close();
+			this.#db.onclose = (event) => {
+				console.log(event)
+				this.isOpen = false;
+				resolve(true)
+			}
+			
+		})
 	}
 
 	/**
@@ -106,11 +160,18 @@ class IndexedDBHandler{
 	}
 
 	/**
-	 * db store 이름을 가져오는 getter, db store 이름은 loaction.pathname + location.hash를 사용한다.
 	 * @author mou123
 	 */
 	get DB_STORE_NAME(){
-		return window.location.pathname + window.location.hash;
+		return this.#storeName;
+	}
+
+	get COLUMN_INFO(){
+		return this.#columnInfo;
+	}
+
+	get columnContainer(){
+		return JSON.parse(this.#container);
 	}
 
 	/**
@@ -122,6 +183,7 @@ class IndexedDBHandler{
 	upgradeneeded(event,{isNewAddStore=false}){
 
 		let objectStore;
+		// newVersion이 oldVersion과 같지 않고 && oldVersion이 0이 아니며 *(최초 오픈시 0임) && 신규 store를 등록하는 것이 아니라면
 		if(event.newVersion != event.oldVersion && event.oldVersion != 0 && ! isNewAddStore){
 			objectStore = event.target.transaction.objectStore(this.DB_STORE_NAME);
 			let indexNameList = Object.entries(objectStore.indexNames);
@@ -142,47 +204,43 @@ class IndexedDBHandler{
 				}
 			})
 		}else{
-			objectStore = event.target.result.createObjectStore(this.DB_STORE_NAME,{keyPath : 'boTempId', autoIncrement : true});
+			objectStore = event.target.result.createObjectStore(this.DB_STORE_NAME,{keyPath : 'id', autoIncrement : true});
 			Object.entries(this.#columnInfo).forEach( ([indexName, column]) => objectStore.createIndex(...column) );
 		}
 	}
 
 	/**
 	 * indexed db에 데이터를 저장하는 함수
-	 * @param {Object} data : indexed db에 저장할 실제 데이터 (boTempData에 들어갈 data Object) 
-	 * @param {String} boTempName : 사용자가 직접 정하는 식별 명칭 
+	 * @param {Object} data : indexed db에 저장할 데이터 
 	 * @returns {Promise}
 	 */
-	addTempItem(data = {}, boTempName){
-		return new Promise(resolve => {
-			if( ! this.isOpen || ! this.boTempDB){
-				throw new Error('indexedDB가 열려있지 않습니다.');
-			}else if(boTempName == ''){
-				alert('임시 저장 이름이 비어있습니다.');
-				throw new Error('임시 저장 이름이 비어있습니다.');
-			}else if( ! boTempName){
-				throw new Error('사용자가 입력을 취소하였습니다.');
+	addItem(data = this.container){
+		return new Promise( (resolve, reject ) => {
+			if( ! this.isOpen || ! this.#db){
+				reject(new Error('indexedDB가 열려있지 않습니다.'));
 			}
-			let transaction = this.boTempDB.transaction(this.DB_STORE_NAME, 'readwrite')
+			let transaction = this.#db.transaction(this.DB_STORE_NAME, 'readwrite')
 			let store = transaction.objectStore(this.DB_STORE_NAME);
-			let tempObj = {
-				boTempName: boTempName,
-				boTempInsertTime: new Date().getTime(),
-				boTempData: data
+			let request = store.put(data);
+			request.onsuccess = (e) => {
+				transaction.commit();
 			}
-			let request = store.put(tempObj);
-			request.onsuccess = (e) => {}
-			request.onerror = (e) => {}
-			transaction.commit();
+			request.onerror = (e) => {
+				console.log(e)
+			}
 			transaction.oncomplete = (e)=>{
 				if(e.type == 'complete'){
-					alert('임시 저장을 완료하였습니다.');
+					//alert('임시 저장을 완료하였습니다.');
+					//console.log(e.type);
 				}
+				resolve(e.type);
 			}
 			transaction.onerror = (e)=>{
-				alert('임시 저장에 실패했습니다');
+				//error code
+				console.log(e)
+				reject(new Error('commit error'))
 			}
-			return setTimeout(()=>resolve(), 0);
+			//return resolve();
 		});
 	}
 
@@ -217,7 +275,7 @@ class IndexedDBHandler{
 			let start = (pageSize * (pageNum - 1));
 			let isEnableAdvanced = start != 0; 
 			let count = 0;
-			let transaction = this.boTempDB.transaction(this.DB_STORE_NAME, 'readonly')
+			let transaction = this.#db.transaction(this.DB_STORE_NAME, 'readonly')
 			let store = transaction.objectStore(this.DB_STORE_NAME);
 			let result = {
 				data:[],
@@ -255,12 +313,12 @@ class IndexedDBHandler{
 	/**
 	 * 임시 저장 목록 중 특정 row를 삭제하는 함수
 	 * @author mozu123
-	 * @param  {...any} idList : 삭제 할 id 목록
+	 * @param  {...String} idList : 삭제 할 id 목록
 	 * @returns {Promise} result : 삭제 몇건 했는지 count 한 정보를 담은 Object
 	 */
 	deleteTempItem(...idList){
 		return new Promise((resolve, reject) => {
-			let transaction = this.boTempDB.transaction(this.DB_STORE_NAME, 'readwrite')
+			let transaction = this.#db.transaction(this.DB_STORE_NAME, 'readwrite')
 			let store = transaction.objectStore(this.DB_STORE_NAME);
 			let result = {successCount:0, failedCount:0};
 			idList.forEach(id=>{

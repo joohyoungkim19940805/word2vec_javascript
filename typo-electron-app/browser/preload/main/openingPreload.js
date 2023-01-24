@@ -1,6 +1,6 @@
 //const { contextBridge, ipcRenderer } = require('electron')
 const { contextBridge, ipcRenderer } = require('electron')
-
+//console.log('test<<<', __project_path);
 contextBridge.exposeInMainWorld('myAPI', {
 	setTitle1 : (title) => {
 		console.log('bridge <<< ', title)
@@ -18,8 +18,16 @@ contextBridge.exposeInMainWorld('myAPI', {
 	 * Electron API에 대한 렌더러의 액세스를 가능한 한 많이 제한해야 합니다.
 	 * @returns 
 	 */
-	openFile : () => ipcRenderer.invoke('dialog:openFile'),
+	//openFile : () => ipcRenderer.invoke('dialog:openFile'),
+	
 	scanningUserDirectory : () => ipcRenderer.invoke('scanningUserDirectory'),
+
+	getUserDirtoryList : () => ipcRenderer.invoke('getUserDirtoryList'),
+	getUserDirtoryMapper : () => ipcRenderer.invoke('getUserDirtoryMapper'),
+	getUserFileMapper : () => ipcRenderer.invoke('getUserFileMapper'),
+	getUserFileExtensionMapper : () => ipcRenderer.invoke('getUserFileExtensionMapper'),
+	getStatsMapper : () => ipcRenderer.invoke('getStatsMapper'),
+
 	getScanningProgress : () => ipcRenderer.invoke('getScanningProgress')
 })
 

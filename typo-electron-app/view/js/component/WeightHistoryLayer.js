@@ -303,3 +303,24 @@ class WeightHistoryLayer extends HTMLElement{
 }
 
 window.customElements.define('weight-history-layer', WeightHistoryLayer);
+
+/*
+class WeightHistoryLayer extends HTMLElement{
+    #isLoadEnd = false;
+    constructor(){
+        super();
+    }
+    connectedCallback(){
+        if( ! this.#isLoadEnd){
+            this.innerHTML = `
+                <div>
+                    <span>i'm layer</span>
+                </div>
+            `
+            this.#isLoadEnd = true;
+        }
+    }
+}
+window.customElements.define('weight-history-layer', WeightHistoryLayer);
+document.body.append( document.createElement('weight-history-layer') )
+*/

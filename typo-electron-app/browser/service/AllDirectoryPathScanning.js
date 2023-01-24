@@ -13,6 +13,7 @@ const fs = require('fs');
  */
 const path = require('path');
 
+const DBConfig = require(path.join(__project_path, 'browser/window/main/MainWindow.js'))
 
 /**
  * 모든 디렉토리 패스를 스캐닝하는 클래스
@@ -27,43 +28,52 @@ class AllDirectoryPathScanning{
     /**
      * 유저의 디렉토리 정보를 이곳에 넣는다.
      */
-    #userDirtoryList = [];
+    userDirtoryList = [];
 
     /**
      * 유저의 디렉토리 정보에 대한 맵퍼
      * 키값이 디렉토리이며, 값이 해당 디렉토리에 있는 파일 값들 (List)
      * ex) {dir : [ fileName_1, fileName_2 ]}
      */
-    #userDirtoryMapper = {};
+    userDirtoryMapper = {};
 
 	/**
-	 * 유저 파일 명이 키값이고 벨류가 디렉토리 path인 맵퍼
-     * ex) {fileName : dirPath}
+	 * 유저 파일 명이 키값이고 벨류가 디렉토리 path인 List
+     * ex) [ {fileName : dirPath} ]
 	 */
-	#userFileMapper = {};
+	userFileList = [];
 
     /**
      * 파일 확장자 맵퍼
      * 확장자가 키값이고 벨류가 파일 이름 list인 맵퍼
      * ex) {exe : [ fileName_1.exe, fileName_2.exe ]}
      */
-    #userFileExtensionMapper = {
+    userFileExtensionMapper = {
         unknown:[]
     };
 
-    #statsMapper = {};
+    //statsList = [];
 
     /**
      * 유저의 c, d, e... 등 드라이브 정보를 이곳에 넣는다.
      */
     #driveNameList = [];
 
+    maxLength = 0;
+    
+    #db;
+
     /**
      * AllDirectoryPathScaning의 생성자
      */
     constructor(){
-        this.length = 0;
+        
+    }
 
+    async allDriveScaninng(){
+        return this.getAllDriveName().then(driveList => {
+                return Promise.all(driveList.flatMap( driveName => this.allDirtoryScaninng(driveName) ))
+        })
     }
 
     /**
@@ -79,36 +89,38 @@ class AllDirectoryPathScanning{
 					let newDirPath = dirPath + this.#PATH_SEPARATOR + name;
 					return await this.getFileStat(newDirPath).then(stats => {
                         let lastName = stats.lastName
-						this.#userDirtoryList.push(newDirPath);
+						this.userDirtoryList.push(newDirPath);
+                        this.maxLength += 1;
 						//console.log(stats.lastName);
 						if(stats.isFile()){
                             let fileExtension = path.extname(stats.lastName);
 
                             //파일 멥퍼에 저장
-                            this.#userFileMapper[lastName] = newDirPath;
+                            this.userFileList.push({ [lastName] : newDirPath.replace(lastName, '') });
 
                             //디텍토리 맵퍼에 저장 = {경로:[파일명들]}
-                            if(this.#userDirtoryMapper[newDirPath]){
-                                this.#userDirtoryMapper[newDirPath].push(lastName);
+                            let parentDir = newDirPath.replace(lastName, ''); 
+                            if(this.userDirtoryMapper[parentDir]){
+                                this.userDirtoryMapper[parentDir].push(lastName);
                             }else{
-                                this.#userDirtoryMapper[newDirPath] = [lastName];
+                                this.userDirtoryMapper[parentDir] = [lastName];
                             }
 
                             //파일 확장자 맵퍼에 저장 = {확장자:[파일명들]}
                             if(this.#isNotIgnoreFile(fileExtension)){
-                                this.#statsMapper[lastName] = stats;
+                                //this.statsList.push(stats);
                                 if(fileExtension === ''){
-                                    this.#userFileExtensionMapper.unknown.push(lastName);
-                                }else if(this.#userFileExtensionMapper[fileExtension]){
-                                    this.#userFileExtensionMapper[fileExtension].push(lastName);
+                                    this.userFileExtensionMapper.unknown.push(lastName);
+                                }else if(this.userFileExtensionMapper[fileExtension]){
+                                    this.userFileExtensionMapper[fileExtension].push(lastName);
                                 }else{
-                                    this.#userFileExtensionMapper[fileExtension] = [lastName];
+                                    this.userFileExtensionMapper[fileExtension] = [lastName];
                                 }
                             }
                             
                             return resolve();
 						}else if(stats.isDirectory() && this.#isNotIgnoreDir(stats)){
-                            this.#statsMapper[newDirPath] = stats;
+                            //this.statsList.push(stats);
 						    return this.allDirtoryScaninng(newDirPath, pending);
                         }else{
                             return resolve();
@@ -161,40 +173,51 @@ class AllDirectoryPathScanning{
                 }
 
 				if(stats && ! error){
+                    stats.statsType = 'complete',
 					stats.dirPath = dirPath;
 					stats.lastName = lastName;
+                    stats._isDirectory = stats.isDirectory();
+                    stats._isFile = stats.isFile();
+                    stats.errrorNo = null;
+                    stats.errorCode = null;
+                    stats.errorName = null;
 					return resolve(stats)
 				}else if (error){
 					return resolve(
                         new fs.Stats({
-                            statsType:'error',
-                            no:error.errno,
-                            code:error.code,
-                            dirPath:dirPath,
-                            errorName:'operation not permitted',
+                            statsType: 'error',
+                            dirPath: dirPath,
                             lastName: lastName,
-                            isDirectory:()=>false,
-                            isFile:()=>false
+                            isDirectory: ()=>false,
+                            _isDirectory: false,
+                            isFile: ()=>false,
+                            _isFile: false,
+                            errorNo: error.errno,
+                            errorCode: error.code,
+                            errorName: error.message
                         })
                     );
 				}else{
                     return resolve(
                         new fs.Stats({
                             statsType:'unknown',
-                            no:error.errno,
-                            code:error.code,
                             dirPath:dirPath,
-                            errorName:'operation not permitted',
                             lastName:'',
-                            isDirectory:()=>false,
-                            isFile:()=>false
+                            isDirectory: ()=>false,
+                            _isDirectory: false,
+                            isFile: ()=>false,
+                            _isFile: false,
+                            errorNo: 0,
+                            errorCode: 0,
+                            errorName:'may be operation not permitted'
+
                         })
                     );
                 }
             })
         });
     }
-
+    
     /**
      * 
      * @returns {Promise<Array>} : c, d, e 등 드라이버 정보를 가져오는 함수
@@ -211,29 +234,79 @@ class AllDirectoryPathScanning{
                     .filter(e=> e !== '')
                     .map( (e, i) => {
                         this.getFileStat(e).then(stat=>{
-							this.#userDirtoryMapper[e]=stat
+                            stat.dirPath = e;
+                            //this.statsList.push(stat)
 						});
-                        this.#userDirtoryList.push(e);
-                        return e;
+                        this.userDirtoryList.push(e);
+                        this.maxLength += 1;
+                        return e + '/';
                     })
                 return resolve(this.#driveNameList);
             });
         });
 	}
 
+    /**
+     * 디버깅용으로, 변수에 어떤 값이 있는지 눈으로 보기 위해 만듬
+     * 추후 파일 쓰기 작업에 이용될 수도 있다.
+     * @param {Object || Arry} data 
+     * @param {String} fileName 
+     * @param {Boolean} prettyJson 
+     * @returns {Promise} 
+     */
+    dataWrite(data, fileName, prettyJson = true){
+        return new Promise( (resolve, rejects) => {
+            let callback = (error) => {
+                if(error){
+                    rejects(error)
+                    console.log(error)
+                }else{
+                    resolve('done')
+                }
+            }
+            if(prettyJson){
+                fs.writeFile(`${fileName}.json`, JSON.stringify(data, null, 4), 'utf8', callback )
+            }else{
+                fs.writeFile(`${fileName}.json`, JSON.stringify(data), 'utf8', callback )
+            }
+        })
+    }
+
+    /**
+     * 이 코드는 메모리 누수 문제로 주석처리
+     * @param {} data 
+     * @param {*} fileName 
+     */
+    /*
+    manyDataWrite(data, fileName){
+        new Promise((resolve, rejects) =>{
+            let jsonText;
+            if(data instanceof Array){
+                //Array
+                jsonText = `[${data.map( e => JSON.stringify(e) ).join(',')}]`
+            }else if(data instanceof Object){
+                //Object
+                jsonText = `{${Object.entries(data).map( ([k,v]) => `"${k}":${JSON.stringify(v)}` ).join(',')}}`
+            }else{
+                rejects(new Error('this is not suppurt type'))
+            }
+            
+            fs.writeFile(`${fileName}.json`, jsonText, 'utf8', (error)=>{
+                if(error){
+                    rejects(error)
+                    console.log(error)
+                }else{
+                    resolve('done')
+                }
+            })
+        });
+    }
+    */
+
 	filesRead(files){
 
     }
-
-    get userDirtoryMapper(){
-        return this.#userDirtoryMapper;
-    }
-    get userDirtoryList(){
-        return this.#userDirtoryList;
-    }
-	get userFileMapper(){
-		return this.#userFileMapper;
-	}
+    
 }
 const allDirectoryPathScanning = new AllDirectoryPathScanning();
 module.exports = allDirectoryPathScanning
